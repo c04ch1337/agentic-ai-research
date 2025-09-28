@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  agentic-ai:
+    build: .
+    container_name: agentic-ai-research
+    volumes:
+      - ./data:/app/data
+      - ./sessions:/app/sessions
+      - ./chroma_db:/app/chroma_db
+      - ./logs:/app/logs
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN}
+    ports:
+      - "8080:8080"
+    stdin_open: true
+    tty: true
+    networks:
+      - ai-network
+
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: chroma-db
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - CHROMA_SERVER_CORS_ALLOW_ORIGINS=["*"]
+    networks:
+      - ai-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ai-network
+
+networks:
+  ai-network:
+    driver: bridge
+
+volumes:
+  redis_data:
+  chroma_data:

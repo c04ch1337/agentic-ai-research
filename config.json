@@ -1,0 +1,27 @@
+{
+  "models": {
+    "reasoning_model": "gpt-4",
+    "embedding_model": "all-MiniLM-L6-v2",
+    "fallback_model": "gpt-3.5-turbo"
+  },
+  "rag": {
+    "chunk_size": 1000,
+    "chunk_overlap": 200,
+    "max_search_results": 10,
+    "similarity_threshold": 0.7
+  },
+  "reasoning": {
+    "max_steps": 10,
+    "confidence_threshold": 0.7,
+    "enable_self_reflection": true
+  },
+  "storage": {
+    "chroma_db_path": "./chroma_db",
+    "sessions_path": "./sessions",
+    "data_path": "./data"
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "./logs/agentic_ai.log"
+  }
+}
