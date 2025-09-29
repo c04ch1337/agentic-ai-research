@@ -1,5 +1,6 @@
 """FastAPI web interface"""
 from fastapi import FastAPI, UploadFile, File, HTTPException
+import logging, json, os
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -12,6 +13,16 @@ from .core.agent import AgenticAI
 from .config import Config
 
 app = FastAPI(title="Agentic AI Research Framework", version="1.0.0")
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+# Optional: JSON logs
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO"),
+    format='{"t":"%(asctime)s","lvl":"%(levelname)s","msg":"%(message)s","name":"%(name)s"}',
+)
 
 # Setup static files
 try:

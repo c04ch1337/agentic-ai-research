@@ -1,46 +1,54 @@
-version: '3.8'
+version: "3.8"
+
+x-env: &default_env
+  OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+  HUGGINGFACE_TOKEN: ${HUGGINGFACE_TOKEN:-}
+  CHROMA_DB_PATH: /app/chroma_db
+  DATA_PATH: /app/data
+  SESSIONS_PATH: /app/sessions
 
 services:
-  agentic-ai:
+  app:
     build: .
+    image: agentic-ai-research:latest
     container_name: agentic-ai-research
+    command: web
+    env_file: .env
+    environment: *default_env
+    ports:
+      - "8080:8080"
     volumes:
       - ./data:/app/data
       - ./sessions:/app/sessions
       - ./chroma_db:/app/chroma_db
       - ./logs:/app/logs
-    environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN}
-    ports:
-      - "8080:8080"
-    stdin_open: true
-    tty: true
-    networks:
-      - ai-network
-
-  chroma:
-    image: chromadb/chroma:latest
-    container_name: chroma-db
-    ports:
-      - "8000:8000"
-    volumes:
-      - chroma_data:/chroma/chroma
-    environment:
-      - CHROMA_SERVER_CORS_ALLOW_ORIGINS=["*"]
-    networks:
-      - ai-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks: [ai-network]
 
   redis:
     image: redis:7-alpine
     container_name: redis-cache
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    networks:
-      - ai-network
+    restart: unless-stopped
+    networks: [ai-network]
 
 networks:
   ai-network:
@@ -48,4 +56,3 @@ networks:
 
 volumes:
   redis_data:
-  chroma_data:
